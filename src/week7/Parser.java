@@ -7,7 +7,7 @@ public class Parser {
     Lexer lexer;
     String funId = "";
 
-    public Parser(Lexer scan) { 
+    public Parser(Lexer scan) {
         lexer = scan;		  
         token = lexer.getToken(); // get the first token
     }
@@ -58,10 +58,10 @@ public class Parser {
             Expr e = expr();
 	        d = new Decl(id, t, e);
 	    } else if (token == Token.LBRACKET) { // array
-		match(Token.LBRACKET); 
-		Value v = literal(); 
-		d = new Decl(id, t, v.intValue()); 
-		match(Token.RBRACKET); 
+		match(Token.LBRACKET);
+		Value v = literal();
+		d = new Decl(id, t, v.intValue());
+		match(Token.RBRACKET);
 	    } else
             	d = new Decl(id, t);
             match(Token.SEMICOLON);
@@ -70,7 +70,7 @@ public class Parser {
 
     private Decls decls () {
     // <decls> -> {<decl>}
-        Decls ds = new Decls ();
+        Decls ds = new Decls();
 	    while (isType()) {
 	        Decl d = decl();
 	        ds.add(d);
@@ -80,9 +80,9 @@ public class Parser {
 
     private Functions functions () {
     // <functions> -> { <function> }
-	    Functions fs = new Functions();  
+	    Functions fs = new Functions();
         while (token == Token.FUN) {
-	       Function f = function(); 
+	       Function f = function();
 	       fs.add(f);
         }  
         return fs;            	
@@ -99,7 +99,7 @@ public class Parser {
 	    if (token != Token.RPAREN)
             f.params = params();
 	    match(Token.RPAREN);
-	    Stmt s = stmt();		
+	    Stmt s = stmt();
 	    f.stmt = s;
 	    return f;
     }
@@ -144,9 +144,9 @@ public class Parser {
 	    case SEMICOLON:
             match(token.SEMICOLON); return s;
         case LBRACE:			
-	        match(Token.LBRACE);		
+	        match(Token.LBRACE);
             s = stmts();
-            match(Token.RBRACE);	
+            match(Token.RBRACE);
 	        return s;
         case IF: 	// if statement 
             s = ifStmt(); return s;
@@ -179,12 +179,12 @@ public class Parser {
 
     private Let letStmt () {
     // <letStmt> -> let <decls> in <block> end
-	    match(Token.LET);	
+	    match(Token.LET);
         Decls ds = decls();
      	 Functions fs = functions();
 	    match(Token.IN);
         Stmts ss = stmts();
-        match(Token.END);	
+        match(Token.END);
         match(Token.SEMICOLON);
         return new Let(ds, fs, ss);
         //return new Let(ds, null, ss);
@@ -342,7 +342,7 @@ public class Parser {
     private Expr factor() {
         // <factor> -> [-](id | <call> | literal | '('<aexp> ')' | array
         Operator op = null;
-        if (token == Token.MINUS) 
+        if (token == Token.MINUS)
             op = new Operator(match(Token.MINUS));
 
         Expr e = null;
@@ -361,7 +361,7 @@ public class Parser {
             e = literal();
             break; 
         case LPAREN: 
-            match(Token.LPAREN); 
+            match(Token.LPAREN);
             e = aexp();       
             match(Token.RPAREN);
             break; 

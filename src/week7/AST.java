@@ -68,18 +68,12 @@ class Type {
     final static Type ARRAY = new Type("array");
     final static Type UNDEFINED = new Type("undefined");
     final static Type ERROR = new Type("error");
+    
+    protected String id;
+    protected Type subType;
 
-    protected Type elementType = null;
-    protected String id = "";
-    protected Type(String s) { id = s; };
-    protected Type (String s, Type e) {id = s; elementType = e;}
-    public String toString ( ) {
-        if(elementType == null)
-            return id;
-        else
-            return elementType + "[]";
-
-    }
+    protected Type(String s) { id = s; }
+    public String toString ( ) { return id; }
 }
 
 class ProtoType extends Type {
@@ -272,9 +266,7 @@ class Value extends Expr {
         if (v instanceof Boolean) type = Type.BOOL;
         if (v instanceof String) type = Type.STRING;
         if (v instanceof Function) type = Type.FUN;
-        if (v instanceof Value[]){
-            type = Type.ARRAY;
-        }
+        if (v instanceof Value[]) type = Type.ARRAY;
         value = v; undef = false; 
     }
 

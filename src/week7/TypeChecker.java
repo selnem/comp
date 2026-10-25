@@ -9,8 +9,8 @@ public class TypeChecker {
     public static Type Check(Command p) {
         if (p instanceof Decl) {
             Decl d = (Decl) p;
-	        if (tenv.contains(d.id))
-                error(d, "duplicate variable declaration");
+	        if (tenv.contains(d.id)) 
+                error(d, "duplicate variable declaration"); 
 	        else
                 return Check(d,tenv);
         }
@@ -30,14 +30,10 @@ public class TypeChecker {
     } 
 
     public static Type Check(Decl decl, TypeEnv te) {
-        if (decl.expr != null) {
-            if (decl.type != Check(decl.expr, te))
-                error(decl, "type error: incorrect initialization to " + decl.id);
-        }
-        if (decl.arraysize != -1){
-            if(decl.arraysize < 0)
-                error(decl, "type error: array size can't be under 0" + decl.id);
-        }
+        if (decl.expr != null) 
+	    if (decl.type != Check(decl.expr, te))
+	        error(decl, "type error: incorrect initialization to " + decl.id);
+
         te.push (decl.id, decl.type);
         return decl.type;
     }
@@ -98,34 +94,26 @@ public class TypeChecker {
 
         if (e instanceof Call) 
             return Check((Call) e, te); 
-        if (e instanceof Array)
-            return Check ((Array) e,te);
-        throw new IllegalArgumentException("undefined operator");
-    }
 
-    static Type Check(Array ar, TypeEnv te){
-        Type t1 = Check(ar.expr, te);
-        if(t1 != Type.INT)
-            error(ar, "Illegal index type"+ar.id);
-        return ar.type;
+        throw new IllegalArgumentException("undefined operator");
     }
 
     static Type Check(Unary u, TypeEnv te) {
         Type t1 = Check(u.expr, te);
 
         switch (u.op.val) {
-            case "!":
-                if (t1 == Type.BOOL)
-                    u.type = Type.BOOL;
-                else error(u, "! has non-bool operand");
-                break;
-            case "-":
-                if (t1 == Type.INT)
-                    u.type = Type.INT;
-                else error(u,  "Unary - has non-int operand");
-                break;
-            default:
-                throw new IllegalArgumentException("undefined operator");
+        case "!":
+            if (t1 == Type.BOOL)
+                u.type = Type.BOOL;
+            else error(u, "! has non-bool operand");
+            break;
+        case "-":
+            if (t1 == Type.INT)
+                u.type = Type.INT;
+            else error(u,  "Unary - has non-int operand");
+            break;
+        default:
+            throw new IllegalArgumentException("undefined operator");
         }
 
         return u.type;
@@ -216,12 +204,6 @@ public class TypeChecker {
     }
 
     static Type Check(Assignment a, TypeEnv te) {
-
-        if(te.contains(a.ar.id)){
-
-        }
-
-
         if (!te.contains(a.id)) {
             error(a, " undefined variable in assignment: " + a.id);
             return Type.ERROR;

@@ -33,25 +33,25 @@ public class Sint {
 
 
     State Eval(Stmt s, State state) {
-        if (s instanceof Empty)
+        if (s instanceof Empty) 
 	        return Eval((Empty)s, state);
-        if (s instanceof Assignment)
+        if (s instanceof Assignment)  
 	        return Eval((Assignment)s, state);
-        if (s instanceof If)
+        if (s instanceof If)  
 	        return Eval((If)s, state);
-        if (s instanceof While)
+        if (s instanceof While)  
 	        return Eval((While)s, state);
-        if (s instanceof Stmts)
+        if (s instanceof Stmts)  
 	        return Eval((Stmts)s, state);
-	    if (s instanceof Let)
+	    if (s instanceof Let)  
 	        return Eval((Let)s, state);
-	    if (s instanceof Read)
+	    if (s instanceof Read)  
 	        return Eval((Read)s, state);
-	    if (s instanceof Print)
+	    if (s instanceof Print)  
 	        return Eval((Print)s, state);
-        if (s instanceof Call)
+        if (s instanceof Call) 
 	        return Eval((Call)s, state);
-	    if (s instanceof Return)
+	    if (s instanceof Return) 
 	        return Eval((Return)s, state);
         if (s instanceof DoWhile)
             return Eval((DoWhile)s, state);
@@ -67,7 +67,7 @@ public class Sint {
     }
 
     // value-returning call 
-    Value V (Call c, State state) {
+    Value V (Call c, State state) { 
 	    Value v = state.get(c.fid);  	 // find function
         Function f = v.funValue();
         State s = newFrame(state, c, f); // create new frame on the stack
@@ -111,7 +111,6 @@ public class Sint {
   
     State Eval(Assignment a, State state) {
 	// evaluate a.expr then update state; // hw 4.3
-        //
         Value v = V(a.expr,state);
         if(a.ar != null) {
             Value arr = state.get(a.ar.id);
@@ -173,7 +172,6 @@ public class Sint {
         if(V(l.expr,state).boolValue()){
             return Eval(l, state);
         }
-
         return state;
     }
 
@@ -182,7 +180,6 @@ public class Sint {
         s = Eval(l.stmts,s);
 	    return free(l.decls, s);
     }
-
     State allocate (Decls ds, State state) {
         if (ds != null) {
             for (Decl d : ds) {
@@ -273,7 +270,7 @@ public class Sint {
     }
 
     Value V(Expr e, State state) {
-        if (e instanceof Value)
+        if (e instanceof Value) 
             return (Value) e;
 
         if (e instanceof Identifier) {
@@ -294,7 +291,7 @@ public class Sint {
             return unaryOperation(u.op, v); 
         }
 
-        if (e instanceof Call)
+        if (e instanceof Call) 
     	    return V((Call)e, state);
 
         if (e instanceof Array) {
@@ -357,7 +354,7 @@ public class Sint {
                     continue;
                 }
 
-	            if (command.type!= Type.ERROR) {
+	            if (command.type!=Type.ERROR) {
                     System.out.println("\nInterpreting..." + args[0] + command);
                     try {
                         state = sint.Eval(command, state);
