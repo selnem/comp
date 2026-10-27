@@ -318,7 +318,7 @@ public class Sint {
 	            Command command=null;
                 try {
 	                command = parser.command();
-                    //command.type = TypeChecker.Check(command); 
+                    command.type = TypeChecker.Check(command);
                 } catch (Exception e) {
                     System.out.println("Error: "+e);
 		            System.out.print(">> ");
@@ -348,7 +348,7 @@ public class Sint {
 
                 try {
 		            command = parser.command();
-                    //command.type = TypeChecker.Check(command);    
+                    command.type = TypeChecker.Check(command);
                 } catch (Exception e) {
                     System.out.println("Error: "+e);
                     continue;

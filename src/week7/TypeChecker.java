@@ -9,7 +9,7 @@ public class TypeChecker {
     public static Type Check(Command p) {
         if (p instanceof Decl) {
             Decl d = (Decl) p;
-	        if (tenv.contains(d.id)) 
+	        if (tenv.contains(d.id))
                 error(d, "duplicate variable declaration"); 
 	        else
                 return Check(d,tenv);
@@ -30,9 +30,18 @@ public class TypeChecker {
     } 
 
     public static Type Check(Decl decl, TypeEnv te) {
+        if(decl.arraysize != -1){
+            if(decl.arraysize < 0){
+                error(decl, "array size must be a positive integer");
+            }
+            te.push(decl.id,Type.array(decl.type));
+            return decl.type;
+        }
+
         if (decl.expr != null) 
-	    if (decl.type != Check(decl.expr, te))
-	        error(decl, "type error: incorrect initialization to " + decl.id);
+	        if (decl.type != Check(decl.expr, te))
+	            error(decl, "type error: incorrect initialization to " + decl.id);
+
 
         te.push (decl.id, decl.type);
         return decl.type;
@@ -93,9 +102,28 @@ public class TypeChecker {
             return Check((Unary) e, te); 
 
         if (e instanceof Call) 
-            return Check((Call) e, te); 
+            return Check((Call) e, te);
+
+        if (e instanceof Array)
+            return Check((Array) e, te);
 
         throw new IllegalArgumentException("undefined operator");
+    }
+    static Type Check(Array arr, TypeEnv te) {
+        Type arrType = Check(arr.id, te);
+        Type idxType = Check(arr.expr, te);
+        if(arrType == Type.ERROR)
+            error(arr, "type error in array: " + arr.id);
+        else if(idxType == Type.ERROR){
+            error(arr, "type error in expr: " + arr.expr);
+        } else if(arrType.subType == null){
+            error(arr, "not an array: "+ arr.id);
+        } else if (idxType != Type.INT) {
+            error(arr, "array index must be int: " + arr);
+        } else {
+            arr.type = arrType.subType;
+        }
+        return arr.type;
     }
 
     static Type Check(Unary u, TypeEnv te) {
@@ -172,6 +200,8 @@ public class TypeChecker {
            return Check((Call) s, te);
 	    if (s instanceof Return) 
            return Check((Return) s, te);
+        if (s instanceof DoWhile)
+            return Check((DoWhile) s, te);
         throw new IllegalArgumentException("undefined statement");
     }
 
@@ -204,6 +234,20 @@ public class TypeChecker {
     }
 
     static Type Check(Assignment a, TypeEnv te) {
+        if(a.ar != null){
+            Type arrType = Check(a.ar, te);
+            Type exprType = Check(a.expr, te);
+            if(arrType == Type.ERROR)
+                error(a, "type error in array: " + a.ar);
+            if(exprType == Type.ERROR){
+                error(a, "type error in expr: " + a.expr);
+            } else if(arrType == exprType) {
+                a.type = Type.VOID;
+            } else
+                error(a, "mixed mod assignment to " + a.ar);
+            return a.type;
+        }
+
         if (!te.contains(a.id)) {
             error(a, " undefined variable in assignment: " + a.id);
             return Type.ERROR;
@@ -243,6 +287,16 @@ public class TypeChecker {
 	    else
 	        error(l, "non-bool test in loop"); 
 	    System.out.println(l.type);
+        return l.type;
+    }
+
+    static Type Check(DoWhile l, TypeEnv te){
+        Type t = Check(l.expr, te);
+        Type t1 = Check(l.stmt, te);
+        if(t == Type.BOOL){
+            if(t1 == Type.VOID) l.type = t1;
+            else error(l, "return in loop..");
+        } else error(l, "non-bool test in loop");
         return l.type;
     }
 

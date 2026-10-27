@@ -73,7 +73,20 @@ class Type {
     protected Type subType;
 
     protected Type(String s) { id = s; }
-    public String toString ( ) { return id; }
+
+    static Type array(Type element) {
+        Type t = new Type("array");
+        t.subType = element;
+        return t;
+    }
+
+    public String toString ( ) {
+        if (subType == null) return id;
+        String base = subType.toString();
+        if (subType instanceof ProtoType)
+            base = "(" + base + ")";
+        return base + "[]";
+    }
 }
 
 class ProtoType extends Type {
@@ -239,7 +252,7 @@ class Array extends Expr {
 
     Array(Identifier s, Expr e) {id = s; expr = e;}
 
-    public String toString( ) { return id.toString()+"[]"; }
+    public String toString( ) { return id.toString()+"["+expr.toString()+"]"; }
 
     public boolean equals (Object obj) {
         String s = ((Array) obj).id.toString();
@@ -266,7 +279,13 @@ class Value extends Expr {
         if (v instanceof Boolean) type = Type.BOOL;
         if (v instanceof String) type = Type.STRING;
         if (v instanceof Function) type = Type.FUN;
-        if (v instanceof Value[]) type = Type.ARRAY;
+        if (v instanceof Value[]) {
+            Value[] a = (Value[]) v;
+            if (a.length > 0 && a[0] != null)
+                type = Type.array(a[0].type);
+            else
+                type = Type.ARRAY;
+        }
         value = v; undef = false; 
     }
 
@@ -310,7 +329,7 @@ class Value extends Expr {
         if (type == Type.BOOL) return "" + boolValue();
 	    if (type == Type.STRING) return "" + stringValue();
         if (type == Type.FUN) return "" + funValue();
-        if (type == Type.ARRAY) return "" + arrValue();
+        if (type != null && "array".equals(type.id)) return "" + arrValue();
         return "undef";
     }
 }
