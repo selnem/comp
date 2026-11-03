@@ -47,17 +47,17 @@ public class TypeChecker {
     }
 
     public static Type Check(Function f, TypeEnv te) {
-	te.push(f.id, new ProtoType(f.type, f.params));
-        for (Decl d : f.params) 
-            te.push (d.id, d.type);
-	Type t = Check(f.stmt, te); // type check the function body
-	if (t != f.type)  
-	    error(f, "incorrect return type");
+        te.push(f.id, new ProtoType(f.type, f.params));
+            for (Decl d : f.params)
+                te.push (d.id, d.type);
+        Type t = Check(f.stmt, te); // type check the function body
+        if (t != f.type)
+            error(f, "incorrect return type");
 
         for (Decl d : f.params) 
             te.pop(); 
         te.pop();                   // pop and push prototype type
-	te.push(f.id, new ProtoType(f.type, f.params));
+	    te.push(f.id, new ProtoType(f.type, f.params));
         return f.type;
     }
 

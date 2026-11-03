@@ -47,15 +47,12 @@ class Function extends Command  {
     Identifier id;
     Decls params;
     Stmt stmt;
-   
     Function(String s, Type t) { 
         id = new Identifier(s); type = t; params = null; stmt = null;
     }
-
     public String toString ( ) { 
        return id.toString(); 
     }
-
 }
 
 class Type {

@@ -105,14 +105,28 @@ public class Parser {
 
     private Decls params() {
 	    Decls params = new Decls();
+        boolean seenDefalt = false;
 	    Type t = type();
         String id = match(Token.ID);
-	    params.add(new Decl(id, t));
+        if(token == Token.ASSIGN) {
+            match(Token.ASSIGN);
+            params.add(new Decl(id, t, expr()));
+            seenDefalt = true;
+        } else {
+            params.add(new Decl(id, t));
+        }
         while (token == Token.COMMA) {
 	        match(Token.COMMA);
 	        t = type();
             id = match(Token.ID);
-            params.add(new Decl(id, t));
+            if(token == Token.ASSIGN) {
+                match(Token.ASSIGN);
+                params.add(new Decl(id, t, expr()));
+                seenDefalt = true;
+            } else {
+                if(seenDefalt) error("default parameter");
+                params.add(new Decl(id, t));
+            }
         }
         return params;
     }
@@ -241,11 +255,10 @@ public class Parser {
 
     private Call call(Identifier id) {
     // <call> -> id(<expr>{,<expr>});
-        match(Token.LPAREN); 
+    match(Token.LPAREN);
 	Call c = new Call(id, arguments()); 
 	match(Token.RPAREN); 
 	match(Token.SEMICOLON);
-    
 	return c;
     }
 
@@ -360,6 +373,9 @@ public class Parser {
                 Array a = new Array(v,expr());
                 match(Token.RBRACKET);
                 e = a;
+            } else if( token == Token.LPAREN){ //Expr factor 파서에서 Function Call 추가
+                Call c = callExpr(v);
+                e = c;
             }
             break;
         case NUMBER: case STRLITERAL: 
@@ -378,7 +394,12 @@ public class Parser {
             return new Unary(op, e);
         else return e;
     }
-  
+    private Call callExpr(Identifier id) {
+        match(Token.LPAREN);
+        Call c = new Call(id,arguments());
+        match(Token.RPAREN);
+        return c;
+    }
     private Exprs arguments() {
     // arguments -> [ <expr> {, <expr> } ]
         Exprs es = new Exprs();
