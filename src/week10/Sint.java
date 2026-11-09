@@ -62,16 +62,20 @@ public class Sint {
 	//
 	// evaluate call without return value
 	//
-	return null;
+        Function f = state.get(c.fid).funValue();
+        state = newFrame(state,c,f);
+        state = Eval(f.stmt, state);
+	    return deleteFrame(state, c, f);
     }
 
     // value-returning call 
-    Value V (Call c, State state) { 
-	//
-	// evaluate call with return value (in Expression)
-	//
-
-	return null;
+    Value V (Call c, State state) {
+        Function f = state.get(c.fid).funValue();
+        state = newFrame(state, c, f);
+        state = Eval(f.stmt, state);
+        Value result = state.get(c.fid);
+        deleteFrame(state, c, f);
+	    return result;
     }
 
     State Eval(Return r, State state) {
@@ -83,23 +87,21 @@ public class Sint {
         Value[] val = new Value[f.params.size()];
         int i = 0;
         for(Expr e: c.args) val[i++] =V(e, state);
-        state.push(new Identifier("barrier"),null);
+        int fIdx = state.lookup(c.fid);
+        state.push(new Identifier("barrier"),new Value(fIdx));
         state = allocate(f.params, state);
+
         i=0;
         for(Decl d: f.params){
             Identifier v = d.id;
-            state.set(v,val[i++]);
+            if(i<c.args.size()){
+                state.set(v,val[i++]);
+            } else {
+                state.set(v, V(d.expr, state));
+            }
+            //state.set(v,val[i++]);
         }
 
-
-	//
-	// evaluate arguments
-	//
-
-	//
-	// activate a new stack frame in the stack 
-	//
-	//
         return state;
     }
 
@@ -201,20 +203,20 @@ public class Sint {
     //
     // add entries for declared variables on the state
     //
-	if (ds != null)
+	    if (ds != null)
             for (Decl decl:ds) {
 		// rule for array declaration
-		if (decl.arraysize >= 0)  {
-			Value[] va = new Value[decl.arraysize];
-			for (int i=0; i<decl.arraysize; i++) 
-				va[i] = new Value(decl.type);
-			return state.push(decl.id, new Value(va));
-		}
-		else if (decl.expr == null)
-                	return state.push(decl.id, new Value(decl.type));
-            	else
-                	return state.push(decl.id, V(decl.expr, state));
-	    }
+                if (decl.arraysize >= 0)  {
+                    Value[] va = new Value[decl.arraysize];
+                    for (int i=0; i<decl.arraysize; i++)
+                        va[i] = new Value(decl.type);
+                    state.push(decl.id, new Value(va));
+                }
+                else if (decl.expr == null)
+                    state.push(decl.id, new Value(decl.type));
+                else
+                    state.push(decl.id, V(decl.expr, state));
+            }
         return state;
     }
 

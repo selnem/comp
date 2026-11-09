@@ -27,21 +27,29 @@ class State extends Stack<Pair> {
 	    return this;
     }
 
-	
-    public int lookup (Identifier v) {
-       for (int i=size()-1; i>=0; i--) {
-           if (v.equals(((Pair) get(i)).id)) return i;
-           if (((Pair)get(i)).id.toString() == "barrier"){
 
-           }
-       }
+
+
+    public int lookup (Identifier v) {
+        int idx = 0;
+        for (int i=size()-1; i>=0; i--) {
+            if (v.equals(((Pair) get(i)).id))
+                return i;
+            if (((Pair)get(i)).id.toString().equals("barrier")){
+                idx = ((Pair)get(i)).val.intValue();
+                break;
+            }
+        }
+        for(int i = idx; i>=0; i--) {
+            if (v.equals(((Pair)get(i)).id)) return i;
+        }
 
 //       for (int i= 0; i <= size()-1; i++) 
 //        if (v.equals(((Pair)get(i)).id))
 //          return i;
 
-       return -1;
-   }
+        return -1;
+    }
 
     // get the value of a variable in a State
     public Value get (Identifier id) {

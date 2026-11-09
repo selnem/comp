@@ -337,18 +337,35 @@ public class TypeChecker {
        ProtoType p = (ProtoType)te.get(c.fid);
        c.type = p.result;
        // check arguments against the ProtoType
-       if (args.size() == p.params.size()) {
-           for (int i=0; i<args.size(); i++) {  // match arg types with param types
+//       if (args.size() == p.params.size()) {
+//           for (int i=0; i<args.size(); i++) {  // match arg types with param types
+//                Expr e = (Expr)args.get(i);
+//                Type t1 = Check(e,te);
+//                Type t2 = ((Decl)p.params.get(i)).type;
+//                if (t1 != t2)
+//                    error(c, "argument type does not match parameter");
+//           }
+//       } else
+//           error(c, "do not match numbers of arguments and params");
+//
+//       return c.type;
+        if(args.size() > p.params.size()){
+            error(c,"Too many arguments in"+c.fid);
+            return c.type;
+        }
+        for(int i = 0; i < p.params.size(); i++){
+            Decl param =(Decl) p.params.get(i);
+            if(i < args.size()){
                 Expr e = (Expr)args.get(i);
-                Type t1 = Check(e,te);
-                Type t2 = ((Decl)p.params.get(i)).type;
-                if (t1 != t2) 
-                    error(c, "argument type does not match parameter");
-           }
-       } else 
-           error(c, "do not match numbers of arguments and params");
-         
-       return c.type;
+                Type argType = Check(e,te);
+                if(argType != param.type){
+                    error(c,"argument type does not match parameter");
+                }
+            } else if (param.expr == null){
+                error(c,"missing arguments for: " + param.id);
+            }
+        }
+        return c.type;
     }
 
     public static TypeEnv addType (Decls ds, TypeEnv te) {

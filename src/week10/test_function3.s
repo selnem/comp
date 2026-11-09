@@ -1,10 +1,8 @@
-int x = 10;
-int y = 5;
-fun int f1(int a, int b=5) {
-    if (a>b) then
-        a = a+1;
-    else
-	b = b+1;
-    return a+b;
+int x = 5;
+int y = 10;
+fun int add(int x, int y = 1) {
+	return x+y;
 }
-printf1(x,y);
+
+print add(x);    	// 6 출력
+print add(x, y);		// 15 출력
