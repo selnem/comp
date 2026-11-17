@@ -141,7 +141,10 @@ public class Parser {
             t = Type.VOID; break;
         case STRING:
             t = Type.STRING; break;
-        // [문제 1] EXC case 추가
+            // [문제 1] EXC case 추가
+        case EXC:
+            t = Type.EXC; break;
+
         default:
 	        error("int | bool | void | string ");
 	    }
@@ -153,39 +156,43 @@ public class Parser {
     // <stmt> -> <block> | <assignment> | <ifStmt> | <whileStmt> | <call> | ...
         Stmt s = new Empty();
         switch (token) {
-	    case SEMICOLON:
-            match(token.SEMICOLON); return s;
-        case LBRACE:
-	        match(Token.LBRACE);
-            s = stmts();
-            match(Token.RBRACE);
-	        return s;
-        case IF: 	// if statement
-            s = ifStmt(); return s;
-        case WHILE:      // while statement
-            s = whileStmt(); return s;
-        case DO:      // while statement
-            s = doWhileStmt(); return s;
-        case ID:	// assignment or function call
-            Identifier id = new Identifier(match(Token.ID));
-            if (token == Token.LPAREN) {
-                s = call(id);
-                match(token.SEMICOLON);
-            }
-            else
-                s = assignment(id);
-            return s;
-	case LET:	// let statement
-            s = letStmt(); return s;
-	case READ:	// read statement
-            s = readStmt(); return s;
-	case PRINT:	// print statment
-            s = printStmt(); return s;
-        // [문제 1] TRY, RAISE case 추가
-	case RETURN:	// return statement
-            s = returnStmt(); return s;
-        default:
-	        error("Illegal stmt"); return null;
+            case SEMICOLON:
+                match(token.SEMICOLON); return s;
+            case LBRACE:
+                match(Token.LBRACE);
+                s = stmts();
+                match(Token.RBRACE);
+                return s;
+            case IF: 	// if statement
+                s = ifStmt(); return s;
+            case WHILE:      // while statement
+                s = whileStmt(); return s;
+            case DO:      // while statement
+                s = doWhileStmt(); return s;
+            case ID:	// assignment or function call
+                Identifier id = new Identifier(match(Token.ID));
+                if (token == Token.LPAREN) {
+                    s = call(id);
+                    match(token.SEMICOLON);
+                }
+                else
+                    s = assignment(id);
+                return s;
+            case LET:	// let statement
+                s = letStmt(); return s;
+            case READ:	// read statement
+                s = readStmt(); return s;
+            case PRINT:	// print statment
+                s = printStmt(); return s;
+            // [문제 1] TRY, RAISE case 추가
+            case TRY:
+                s = tryStmt(); return s;
+            case RAISE:
+                s = raiseStmt(); return s;
+            case RETURN:	// return statement
+                s = returnStmt(); return s;
+            default:
+                error("Illegal stmt"); return null;
 	    }
     }
   
@@ -213,13 +220,25 @@ public class Parser {
     private Try tryStmt () {
     // <tryStmt> -> try <stmt> {catch(id) <stmt>}
         // [문제 1] 작성
-        return null;
+        match(Token.TRY);
+        Stmt s1 = stmt();
+        match(Token.CATCH);
+        match(Token.LPAREN);
+        Identifier id = new Identifier(match(Token.ID));
+        match(Token.RPAREN);
+        Stmt s2 = stmt();
+
+        return new Try(id, s1, s2);
     }
 
     private Raise raiseStmt() {
     // <raiseStmt> -> raise id;
         // [문제 1] 작성
-        return null;
+        match(Token.RAISE);
+        Identifier id = new Identifier(match(Token.ID));
+        match(Token.SEMICOLON);
+
+        return new Raise(id);
     }
 
     private Read readStmt() {
@@ -436,7 +455,7 @@ public class Parser {
  
     private boolean isType( ) {
         switch(token) {
-		case INT: case BOOL: case STRING:   // [문제 1] EXC 추가
+		case INT: case BOOL: case STRING: case EXC: // [문제 1] EXC 추가
             return true;
         default: 
             return false;

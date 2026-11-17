@@ -196,14 +196,51 @@ public class TypeChecker {
         if (s instanceof Call) 
            return Check((Call) s, te);
         // [문제 2] Try, Raise 문 디스패치 추가
-	if (s instanceof Return) 
-           return Check((Return) s, te);
+        if (s instanceof Try)
+            return Check((Try) s, te);
+        if (s instanceof Raise)
+            return Check((Raise) s, te);
+	    if (s instanceof Return)
+            return Check((Return) s, te);
         throw new IllegalArgumentException("undefined statement");
     }
 
     // [문제 2] static Type Check(Raise r, TypeEnv te) 작성
+    static Type Check(Raise r, TypeEnv te) {
+        if(!te.contains(r.eid)) {
+            error(r, "undeclared exeption: " + r.eid);
+            return r.type;
+        }
+        Type eType = te.get(r.eid);
+        if(eType != Type.EXC) {
+            error(r, "not exception type: " + r.eid);
+            return r.type;
+        }
+        r.type = Type.RAISEDEXC;
+        return r.type;
+    }
 
     // [문제 2] static Type Check(Try t, TypeEnv te) 작성
+    static Type Check(Try t, TypeEnv te) {
+        if(!te.contains(t.eid)){
+            error(t, "undeclared exception: " + t.eid);
+            return t.type;
+        }
+        if(te.get(t.eid) != Type.EXC){
+            error(t, "catch non-exception: " + t.eid);
+            return t.type;
+        }
+        Type s1Type = Check(t.stmt1, te);
+        Type s2Type = Check(t.stmt2, te);
+        if(s1Type == Type.RAISEDEXC || s1Type == s2Type) {
+            t.type = s2Type;
+        } else if (s2Type == Type.RAISEDEXC) {
+            t.type = s1Type;
+        } else {
+            error(t, "non-equal type in try-catch");
+        }
+        return t.type;
+    }
 
     static Type Check(Print p, TypeEnv te) {
         Type t = Check(p.expr,te);
@@ -313,7 +350,7 @@ public class TypeChecker {
 	    Type t = Type.VOID;
         for (int i=0; i < ss.stmts.size(); i++) {
             t = Check(ss.stmts.get(i), te);
-            if (t != Type.VOID && i != ss.stmts.size()-1)
+            if (t != Type.VOID && t != Type.RAISEDEXC && i != ss.stmts.size()-1)
                 error(ss, "return in block");
         }
 

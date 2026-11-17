@@ -1,9 +1,18 @@
 // Sint.java
 // Interpreter for S
 package week11;
+
 import java.util.Scanner;
 
 // [문제 3] S 언어의 예외를 나타낼 Java 예외 클래스 SException을 여기에 정의하세요.
+class SException extends RuntimeException {
+    Identifier eid;
+    SException (Identifier id) {
+        super (id.toString(), null, false, false);
+        eid = id;
+    }
+}
+
 
 public class Sint {
     static Scanner sc = new Scanner(System.in);
@@ -19,13 +28,19 @@ public class Sint {
             //else
                 //return state.push(decl.id, V(decl.expr, state));
 	}
+    if (c instanceof Function) {
+            Function f = (Function) c;
+            state.push(f.id, new Value(f));
+            return state;
+    }
 
 	if (c instanceof Stmt)
 	    return Eval((Stmt) c, state); 
 
 	throw new IllegalArgumentException("no command");
     }
-  
+
+
     State Eval(Stmt s, State state) {
         if (s instanceof Empty) 
 	        return Eval((Empty)s, state);
@@ -46,13 +61,93 @@ public class Sint {
 	    if (s instanceof Print)  
 	        return Eval((Print)s, state);
         // [문제 3] Raise 문 디스패치 추가
+        if (s instanceof Raise)
+            return Eval((Raise) s, state);
         // [문제 4] Try 문 디스패치 추가
+        if (s instanceof Try)
+            return Eval((Try) s, state);
+        if (s instanceof Call)
+            return Eval((Call) s, state);
+        if (s instanceof Return)
+            return Eval((Return) s, state);
         throw new IllegalArgumentException("no statement");
     }
 
-    // [문제 3] State Eval(Raise r, State state) 작성
+    State Eval(Call c, State state) {
+	//
+	// evaluate call without return value
+	//
+        Function f = state.get(c.fid).funValue();
+        state = newFrame(state,c,f);
+        state = Eval(f.stmt, state);
+	    return deleteFrame(state, c, f);
+    }
 
+    // value-returning call
+    Value V (Call c, State state) {
+        Function f = state.get(c.fid).funValue();
+        state = newFrame(state, c, f);
+        state = Eval(f.stmt, state);
+        Value result = state.get(c.fid);
+        deleteFrame(state, c, f);
+	    return result;
+    }
+
+    State Eval(Return r, State state) {
+        Value v = V(r.expr, state);
+        return state.push(r.fid, v);
+    }
+
+    State newFrame (State state, Call c, Function f) {
+        Value[] val = new Value[f.params.size()];
+        int i = 0;
+        for(Expr e: c.args) val[i++] =V(e, state);
+        int fIdx = state.lookup(c.fid);
+        state.push(new Identifier("barrier"),new Value(fIdx));
+        state = allocate(f.params, state);
+
+        i=0;
+        for(Decl d: f.params){
+            Identifier v = d.id;
+            if(i<c.args.size()){
+                state.set(v,val[i++]);
+            } else {
+                state.set(v, V(d.expr, state));
+            }
+            //state.set(v,val[i++]);
+        }
+
+        return state;
+    }
+
+    State deleteFrame (State state, Call c, Function f) {
+	//
+	// free a stack frame from the stack
+	//
+        while (!state.empty())
+            if (state.pop().id.toString().equals("barrier")) break;
+
+        return state;
+    }
+
+
+    // [문제 3] State Eval(Raise r, State state) 작성
+    State Eval (Raise r, State state) {
+        throw new SException(r.eid);
+    }
     // [문제 4] State Eval(Try t, State state) 작성
+    State Eval (Try t, State state) {
+        int h =state.size();
+        try {
+            return Eval(t.stmt1, state);
+        } catch (SException e) {
+            state.setSize(h);
+            if (e.eid.equals(t.eid)) {
+                return Eval(t.stmt2, state);
+            }
+            throw e;
+        }
+    }
 
     State Eval(Empty s, State state) {
         return state;
@@ -233,6 +328,9 @@ public class Sint {
 		int index = V(ar.expr, state).intValue();
 		return (state.get(ar.id)).arrValue()[index];
 	    }
+
+        if (e instanceof Call)
+            return V((Call) e, state);
 
         if (e instanceof Identifier) {
 	        Identifier v = (Identifier) e;
