@@ -273,7 +273,9 @@ public class Sint {
             return new Value(v1.intValue() - v2.intValue());
         case "*": 
             return new Value(v1.intValue() * v2.intValue());
-        case "/": 
+        case "/":
+            if (v2.intValue() == 0)
+                throw new SException(new Identifier("ZeroException"));
             return new Value(v1.intValue() / v2.intValue());
         case ">": 
             return new Value(v1.intValue() > v2.intValue());
@@ -352,7 +354,7 @@ public class Sint {
 
         throw new IllegalArgumentException("no operation");
     }
-
+//중략
     public static void main(String args[]) {
 	    if (args.length == 0) {
 	        Sint sint = new Sint(); Lexer.interactive = true;
